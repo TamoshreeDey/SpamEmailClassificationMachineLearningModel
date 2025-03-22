@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../static/style.css">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Spam Email Classifier</h1>
+    <div class="container">
+        <p>Enter an email message below to classify it as spam or legitimate (ham):</p>
+        <textarea id="emailText" placeholder="Enter email text here..."></textarea>
+        <button onclick="classifyEmail()">Classify Email</button>
+        
+        <div id="result" class="result" style="display: none;">
+            <h2>Classification Result:</h2>
+            <p>This email is classified as: <span id="classification"></span></p>
+            <p>Spam probability: <span id="probability" class="probability"></span></p>
+        </div>
+    </div>
+
+    <script>
+        function classifyEmail() {
+            const emailText = document.getElementById('emailText').value;
+            
+            if (!emailText) {
+                alert('Please enter an email text to classify');
+                return;
+            }
+            
+            fetch('/classify', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email: emailText }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                const resultDiv = document.getElementById('result');
+                const classificationSpan = document.getElementById('classification');
+                const probabilitySpan = document.getElementById('probability');
+                
+                classificationSpan.textContent = data.prediction;
+                probabilitySpan.textContent = (data.spam_probability * 100).toFixed(2) + '%';
+                
+                resultDiv.style.display = 'block';
+                resultDiv.classList.remove("spam", "ham");  
+                resultDiv.classList.add(data.spam_probability >= 0.5 ? "spam" : "ham");
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while classifying the email');
+            });
+        }
+    </script>
+</body>
+</html>
